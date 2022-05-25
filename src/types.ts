@@ -1,13 +1,13 @@
-export type CredentialsInfo<T> = {
-    credentialsRecordId: T;
+export type CredentialsInfo = {
+    credentialsRecordId: unknown;
     vaultFilepath: string;
     password: string;
     status: 'ok' | 'broken_credentials';
 };
 
-export interface SecretsStorage<T> {
-    listCredentials: () => Promise<CredentialsInfo<T>[]>;
-    deleteCredentials: (credentialsId: T) => Promise<void>;
+export interface SecretsStorage {
+    listCredentials: () => Promise<CredentialsInfo[]>;
+    deleteCredentials: (credentialsId: unknown) => Promise<void>;
     addCredentials: (filepath: string, password: string) => Promise<void>;
 }
 
@@ -18,4 +18,13 @@ export interface TextEditor {
 export interface Secret {
     name: string;
     value: string;
+}
+
+export class UserError extends Error {
+    public userError: boolean;
+
+    constructor(message: string) {
+        super(message);
+        this.userError = true;
+    }
 }

@@ -1,10 +1,10 @@
 import keytar from 'keytar';
 import { CredentialsInfo, SecretsStorage } from './types';
 
-const SERVICE_NAME = 'aramis-secrets';
+const SERVICE_NAME = 'wellkept-secrets';
 
-export class MacKeychainSecrets implements SecretsStorage<string> {
-    async listCredentials(): Promise<CredentialsInfo<string>[]> {
+export class MacKeychainSecrets implements SecretsStorage {
+    async listCredentials(): Promise<CredentialsInfo[]> {
         return Promise.all(
             (await keytar.findCredentials(SERVICE_NAME)).map(async ({ account, password }) => {
                 let data: any;
@@ -21,8 +21,8 @@ export class MacKeychainSecrets implements SecretsStorage<string> {
         );
     }
 
-    async deleteCredentials(credentialsId: string): Promise<void> {
-        await keytar.deletePassword(SERVICE_NAME, credentialsId);
+    async deleteCredentials(credentialsId: unknown): Promise<void> {
+        await keytar.deletePassword(SERVICE_NAME, credentialsId as string);
     }
 
     async addCredentials(filepath: string, password: string): Promise<void> {
