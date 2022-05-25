@@ -1,140 +1,13 @@
 import { program } from 'commander';
 import chalk from 'chalk';
-import { TextEditor, UserError } from './types';
-import { encrypt } from './encryption';
-import { checkFileExists, writeVaultFile } from './filesystem';
+import { UserError } from './types';
 import { UnixEditorInput } from './input-unix-editor';
 import { runChildProgramSync } from './runner';
-import { Domain, DomainsBundle } from './model';
-import { readVault, WellKeptSecrets } from './index';
-import { chooseNewPassword, enterPassword } from './user-input';
-
-class WellKeptSecretsCli extends WellKeptSecrets {
-    async deregisterVault(filepath: string): Promise<void> {
-        const credentialsRecordIds = (await this.listVaults())
-            .filter(({ vaultFilepath }) => vaultFilepath === filepath)
-            .map(({ credentialsRecordId }) => credentialsRecordId);
-        if (credentialsRecordIds.length === 0) {
-            throw new UserError(`Vault not found with path ${filepath}`);
-        }
-        for (const credentialsRecordId of credentialsRecordIds) {
-            await this.secretsStorage.deleteCredentials(credentialsRecordId);
-        }
-    }
-
-    async editVault(filepath: string, textEditor: TextEditor): Promise<boolean> {
-        const vaults = (await this.listVaults()).filter(({ vaultFilepath }) => vaultFilepath === filepath);
-        if (vaults.length === 0) {
-            throw new UserError(`Vault not found with path ${filepath}`);
-        }
-        if (vaults.length !== 1) {
-            throw new UserError(`Multiple vaults found with path ${filepath}`);
-        }
-        const password = vaults[0].password;
-        const { status, error, domainsBundle } = vaults[0];
-        // const vaultReading = await readVault(filepath, password);
-        if (status !== 'ok') {
-            throw new UserError(`Invalid vault: ${status}${error ? ` ${error}` : ''}`);
-        }
-        if (!domainsBundle) {
-            throw new UserError(`Cannot read vault: ${filepath}`); // Shouldn't end up here
-        }
-        const inputText = domainsBundle.toINIFormat();
-        const outputText = textEditor.editTextSync(inputText);
-        if (outputText === inputText) {
-            return false;
-        }
-        const updatedDomainsBundle = DomainsBundle.parseINIFormat(DomainsBundle.preProcessINIFormatLines(outputText));
-        const encryptedContent = encrypt(updatedDomainsBundle.toJson(), password);
-        await writeVaultFile(filepath, encryptedContent);
-        return true;
-    }
-
-    async editDomain(domainName: string, textEditor: TextEditor): Promise<{ changed: boolean; vaultFilepath?: string }> {
-        const vaults = (await this.listVaults()).filter(({ domainsBundle }) => domainsBundle && domainsBundle.containsDomain(domainName));
-        if (vaults.length === 0) {
-            throw new UserError(`No vault contains domain ${domainName}`);
-        }
-        if (vaults.length !== 1) {
-            throw new UserError(`Multiple vaults contain domain ${domainName}`);
-        }
-        const { password, vaultFilepath: filepath, status, error, domainsBundle } = vaults[0];
-        if (status !== 'ok') {
-            throw new UserError(`Invalid vault: ${status}${error ? ` ${error}` : ''}`);
-        }
-        if (!domainsBundle) {
-            throw new UserError(`Cannot read vault: ${filepath}`); // Shouldn't end up here
-        }
-        const domains = domainsBundle.domains.filter((domain) => domain.name === domainName);
-        const otherDomains = domainsBundle.domains.filter((domain) => domain.name !== domainName);
-        if (domains.length === 0) {
-            throw new UserError(`No domain ${domainName} found`); // Shouldn't end up here
-        }
-        if (domains.length > 1) {
-            throw new UserError(`More than one domain with name ${domainName} found`); // Shouldn't end up here
-        }
-        const inputText = domains[0].toINIFormat();
-        const outputText = textEditor.editTextSync(inputText);
-        if (outputText === inputText) {
-            return { changed: false };
-        }
-        const updatedDomain = Domain.parseINIFormat(DomainsBundle.preProcessINIFormatLines(outputText));
-        const updatedDomainsBundle = new DomainsBundle(otherDomains.concat([updatedDomain]));
-        const encryptedContent = encrypt(updatedDomainsBundle.toJson(), password);
-        await writeVaultFile(filepath, encryptedContent);
-        return { changed: true, vaultFilepath: filepath };
-    }
-
-    async registerVault(filepath: string): Promise<void> {
-        const vaults = (await this.listVaults()).filter(({ vaultFilepath }) => vaultFilepath === filepath);
-        if (vaults.length > 0) {
-            throw new UserError(`Vault with path ${filepath} already registered`);
-        }
-        if (!(await checkFileExists(filepath))) {
-            throw new UserError(`File ${filepath} does not exist`);
-        }
-        const password = enterPassword();
-        const vaultReading = await readVault(filepath, password);
-        if (vaultReading.status !== 'ok') {
-            throw new UserError(`Invalid vault: ${vaultReading.status}${vaultReading.error ? ` ${vaultReading.error}` : ''}`);
-        }
-        await this.secretsStorage.addCredentials(filepath, password);
-    }
-
-    async createVault(filepath: string): Promise<void> {
-        const vaults = (await this.listVaults()).filter(({ vaultFilepath }) => vaultFilepath === filepath);
-        if (vaults.length > 0) {
-            throw new UserError(`Vault with path ${filepath} already registered`);
-        }
-        if (await checkFileExists(filepath)) {
-            throw new UserError(`File ${filepath} already exists`);
-        }
-        const password = chooseNewPassword();
-        const encryptedContent = encrypt(new DomainsBundle([]).toJson(), password);
-        await writeVaultFile(filepath, encryptedContent);
-        await this.secretsStorage.addCredentials(filepath, password);
-    }
-
-    async getVaultsAndStats(): Promise<VaultStats[]> {
-        const vaults = await this.listVaults();
-        const stats: VaultStats[] = [];
-        for (const vault of vaults) {
-            const status = (vault.status === 'ok' ? chalk.green : chalk.red)(`${vault.status}${vault.error ? ` ${vault.error}` : ''}`);
-            const domains: { name: string; numSecrets: number }[] = [];
-            if (vault.domainsBundle) {
-                if (vault.domainsBundle.domains.length > 0) {
-                    for (const domain of vault.domainsBundle.domains) {
-                        domains.push({ name: domain.name, numSecrets: domain.secrets.length });
-                    }
-                }
-            }
-            stats.push({ vaultFilepath: vault.vaultFilepath, status, domains });
-        }
-        return stats;
-    }
-}
-
-type VaultStats = { vaultFilepath: string; status: string; domains: { name: string; numSecrets: number }[] };
+import { WellKeptSecretsCli } from './logic';
+import { MacKeychainSecrets } from './secrets-mac-keychain';
+import { RealFileSystem } from './filesystem';
+import { CryptoEncryption } from './encryption';
+import { TerminalUserInput } from './user-input';
 
 const actionWrapper =
     (fn: (...args: any) => Promise<void>) =>
@@ -150,7 +23,7 @@ const actionWrapper =
     };
 
 export async function main() {
-    const api = new WellKeptSecretsCli();
+    const api = new WellKeptSecretsCli(new MacKeychainSecrets(), new RealFileSystem(), new CryptoEncryption(), new TerminalUserInput());
     const textEditor = new UnixEditorInput();
 
     program
@@ -242,13 +115,13 @@ export async function main() {
                     if (stats.length === 0) {
                         console.log('No vaults registered');
                     } else {
-                        for (const { vaultFilepath, status, domains } of stats) {
-                            console.log(`\n${vaultFilepath}: ${status}`);
+                        for (const { vaultFilepath, ok, status, domains } of stats) {
+                            console.log(`\n${vaultFilepath}: ${chalk[ok ? 'green' : 'red'](status)}`);
                             if (domains.length === 0) {
-                                console.log('    No secrets');
+                                console.log(chalk.dim('    No secrets'));
                             } else {
                                 for (const { name, numSecrets } of domains) {
-                                    console.log(`    [${name}]: ${numSecrets} secrets`);
+                                    console.log(`    ${name}${chalk.dim(`: ${numSecrets} secrets`)}`);
                                 }
                             }
                         }

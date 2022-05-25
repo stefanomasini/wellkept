@@ -1,9 +1,12 @@
 import CryptoJS from 'crypto-js';
+import { Encryption } from './types';
 
-export function encrypt(data: any, secret: string): string {
-    return CryptoJS.AES.encrypt(JSON.stringify(data), secret).toString();
-}
+export class CryptoEncryption implements Encryption {
+    encrypt(data: any, secret: string): string {
+        return CryptoJS.AES.encrypt(JSON.stringify(data), secret).toString();
+    }
 
-export function decrypt(data: string, secret: string): any {
-    return JSON.parse(CryptoJS.AES.decrypt(data, secret).toString(CryptoJS.enc.Utf8));
+    decrypt(data: string, secret: string): any {
+        return JSON.parse(CryptoJS.AES.decrypt(data, secret).toString(CryptoJS.enc.Utf8));
+    }
 }

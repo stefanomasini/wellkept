@@ -1,15 +1,17 @@
 import { question } from 'readline-sync';
-import { UserError } from './types';
+import { UserError, UserInput } from './types';
 
-export function chooseNewPassword(): string {
-    const firstPassword = question('Choose a password: ', { hideEchoBack: true });
-    const secondPassword = question('Repeat password: ', { hideEchoBack: true });
-    if (firstPassword !== secondPassword) {
-        throw new UserError('Passwords do not match');
+export class TerminalUserInput implements UserInput {
+    chooseNewPassword(): string {
+        const firstPassword = question('Choose a password: ', { hideEchoBack: true });
+        const secondPassword = question('Repeat password: ', { hideEchoBack: true });
+        if (firstPassword !== secondPassword) {
+            throw new UserError('Passwords do not match');
+        }
+        return firstPassword;
     }
-    return firstPassword;
-}
 
-export function enterPassword(): string {
-    return question('Password: ', { hideEchoBack: true });
+    enterPassword(): string {
+        return question('Password: ', { hideEchoBack: true });
+    }
 }

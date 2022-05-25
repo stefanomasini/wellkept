@@ -5,8 +5,10 @@ const SERVICE_NAME = 'wellkept-secrets';
 
 export class MacKeychainSecrets implements SecretsStorage {
     async listCredentials(): Promise<CredentialsInfo[]> {
-        return Promise.all(
-            (await keytar.findCredentials(SERVICE_NAME)).map(async ({ account, password }) => {
+        const results: CredentialsInfo[] = await Promise.all(
+            (
+                await keytar.findCredentials(SERVICE_NAME)
+            ).map(async ({ account, password }) => {
                 let data: any;
                 try {
                     data = JSON.parse(account);
@@ -19,6 +21,12 @@ export class MacKeychainSecrets implements SecretsStorage {
                 return { status: 'ok', vaultFilepath: data.filepath, credentialsRecordId: account, password };
             })
         );
+        results.sort(({ vaultFilepath: a }, { vaultFilepath: b }) => {
+            if (a < b) return -1;
+            if (a > b) return 1;
+            return 0;
+        });
+        return results;
     }
 
     async deleteCredentials(credentialsId: unknown): Promise<void> {

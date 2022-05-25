@@ -14,11 +14,11 @@
     "type": "git",
     "url": "https://github.com/stefanomasini/wellkept.git"
   },
-  "main": "dist/index.js",
+  "main": "dist/public.js",
   "bin": {
     "wellkept": "bin/cli.js"
   },
-  "types": "dist/index.d.ts",
+  "types": "dist/public.d.ts",
   "files": [
     "dist/"
   ],
@@ -38,9 +38,8 @@
     "test": "mocha",
     "upgrade": "npx npm-check -u",
     "version": "npm run build && npm run changelog:update",
-    "runcode": "ts-node src/index.ts",
-    "check-format": "prettier --config .prettierrc --check src/**/*.ts",
-    "format": "prettier --config .prettierrc --write --check src/**/*.ts"
+    "check-format": "prettier --config .prettierrc --check src/**/*.ts test/**/*.ts",
+    "format": "prettier --config .prettierrc --write --check src/**/*.ts test/**/*.ts"
   },
   "devDependencies": {
     "@types/chai": "^4.1.6",
@@ -75,5 +74,13 @@
     "keytar": "^7.9.0",
     "readline-sync": "^1.4.10",
     "tmp": "^0.0.33"
+  },
+  "mocha": {
+    "require": [
+      "source-map-support/register",
+      "ts-node/register"
+    ],
+    "extension": "ts",
+    "spec": "test/**/*.ts"
   }
 }

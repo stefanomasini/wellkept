@@ -1,17 +1,51 @@
 'use strict';
 
-// import { expect } from 'chai';
-// import { Example } from '../dist/index';
+import { expect } from 'chai';
+import { DomainsBundle } from '../src/model';
 
-describe('Example class', () => {
-    it('should create an instance using its constructor', () => {
-        // const example: Example = new Example();
-        // expect(example, 'example should exist').to.exist; // tslint:disable-line:no-unused-expression
-    });
-    it('should return whatever is passed to exampleMethod()', () => {
-        // const example: Example = new Example();
-        // const param = 'This is my param.';
-        // const returnValue: string = example.exampleMethod(param);
-        // expect(returnValue).to.equal(param, 'returns the value passed as a parameter');
+describe('Serialization', () => {
+    it('parse INI format', () => {
+        const bundle = DomainsBundle.parseINIFormat(
+            DomainsBundle.preProcessINIFormatLines(`
+        [some-domain]
+        VAR1=foo
+        VAR2=bar
+
+        [another-domain]
+        VAR3=foo2
+        VAR4=
+
+        `)
+        );
+        expect(bundle.toJson()).to.deep.equal({
+            domains: [
+                {
+                    name: 'another-domain',
+                    secrets: [
+                        {
+                            name: 'VAR3',
+                            value: 'foo2',
+                        },
+                        {
+                            name: 'VAR4',
+                            value: '',
+                        },
+                    ],
+                },
+                {
+                    name: 'some-domain',
+                    secrets: [
+                        {
+                            name: 'VAR1',
+                            value: 'foo',
+                        },
+                        {
+                            name: 'VAR2',
+                            value: 'bar',
+                        },
+                    ],
+                },
+            ],
+        });
     });
 });
