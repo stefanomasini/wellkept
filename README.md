@@ -1,1 +1,3 @@
-# secrets
+# WellKept
+
+A secrets manager.
