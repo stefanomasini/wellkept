@@ -75,7 +75,7 @@ export async function main() {
                 if (changed) {
                     console.log(chalk.green('Vault updated'));
                 } else {
-                    console.log(chalk.green('No changes applied'));
+                    console.log(chalk.dim('No changes applied'));
                 }
             })
         );
@@ -116,12 +116,16 @@ export async function main() {
                         console.log('No vaults registered');
                     } else {
                         for (const { vaultFilepath, ok, status, domains } of stats) {
-                            console.log(`\n${vaultFilepath}: ${chalk[ok ? 'green' : 'red'](status)}`);
-                            if (domains.length === 0) {
-                                console.log(chalk.dim('    No secrets'));
+                            console.log(`\n${vaultFilepath}`);
+                            if (!ok) {
+                                console.log(chalk.red(`    ${status}`));
                             } else {
-                                for (const { name, numSecrets } of domains) {
-                                    console.log(`    ${name}${chalk.dim(`: ${numSecrets} secrets`)}`);
+                                if (domains.length === 0) {
+                                    console.log(chalk.dim('    No secrets'));
+                                } else {
+                                    for (const { name, numSecrets } of domains) {
+                                        console.log(`    ${name}${chalk.dim(`: ${numSecrets} secrets`)}`);
+                                    }
                                 }
                             }
                         }

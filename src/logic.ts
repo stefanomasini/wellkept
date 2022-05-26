@@ -24,8 +24,8 @@ export class WellKeptSecrets {
     protected async listVaults(): Promise<VaultInfo[]> {
         return Promise.all(
             (await this.secretsStorage.listCredentials()).map(async ({ vaultFilepath, status, password, credentialsRecordId }) => {
-                if (status === 'broken_credentials') {
-                    return { vaultFilepath, credentialsRecordId, password, status: 'broken_key' };
+                if (status !== 'ok') {
+                    return { vaultFilepath, credentialsRecordId, password, status: 'broken_key', error: status.errorMessage };
                 }
                 const vaultReading = await this.readVault(vaultFilepath, password);
                 return {
@@ -86,7 +86,7 @@ export class WellKeptSecrets {
         try {
             content = this.encryption.decrypt(encryptedContent, password);
         } catch (err) {
-            return { status: 'cannot_decrypt' };
+            return { status: 'cannot_decrypt', error: (err as any).message };
         }
         let domainsBundle: DomainsBundle;
         try {

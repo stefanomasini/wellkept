@@ -18,6 +18,7 @@ describe('Serialization', () => {
         `)
         );
         expect(bundle.toJson()).to.deep.equal({
+            v: 1,
             domains: [
                 {
                     name: 'another-domain',

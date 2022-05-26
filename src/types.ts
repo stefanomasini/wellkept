@@ -2,7 +2,12 @@ export type CredentialsInfo = {
     credentialsRecordId: unknown;
     vaultFilepath: string;
     password: string;
-    status: 'ok' | 'broken_credentials';
+    status:
+        | 'ok'
+        | {
+              code: 'broken_credentials' | 'unknown_version';
+              errorMessage: string;
+          };
 };
 
 export interface SecretsStorage {

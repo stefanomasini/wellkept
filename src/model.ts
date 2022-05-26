@@ -31,6 +31,9 @@ export class DomainsBundle {
         if (!data.domains) {
             throw new Error('DomainsBundle: missing "domains"');
         }
+        if (!data.v || data.v !== 1) {
+            throw new Error('DomainsBundle: unknown version, try upgrading the app');
+        }
         if (!Array.isArray(data.domains)) {
             throw new Error('DomainsBundle: "domains" is not an array');
         }
@@ -64,6 +67,7 @@ export class DomainsBundle {
 
     toJson(): any {
         return {
+            v: 1,
             domains: this.domains.map((domain) => domain.toJson()),
         };
     }

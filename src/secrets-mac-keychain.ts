@@ -13,10 +13,28 @@ export class MacKeychainSecrets implements SecretsStorage {
                 try {
                     data = JSON.parse(account);
                 } catch (err) {
-                    return { vaultFilepath: account, password, credentialsRecordId: account, status: 'broken_credentials' };
+                    return {
+                        vaultFilepath: account,
+                        password,
+                        credentialsRecordId: account,
+                        status: { code: 'broken_credentials', errorMessage: 'Cannot parse the credentials' },
+                    };
+                }
+                if (!data.v || data.v !== 1) {
+                    return {
+                        vaultFilepath: account,
+                        password,
+                        credentialsRecordId: account,
+                        status: { code: 'unknown_version', errorMessage: 'Unknown credentials version, try upgrading the app' },
+                    };
                 }
                 if (!data.filepath || typeof data.filepath !== 'string') {
-                    return { vaultFilepath: account, password, credentialsRecordId: account, status: 'broken_credentials' };
+                    return {
+                        vaultFilepath: account,
+                        password,
+                        credentialsRecordId: account,
+                        status: { code: 'broken_credentials', errorMessage: 'Missing data in credentials' },
+                    };
                 }
                 return { status: 'ok', vaultFilepath: data.filepath, credentialsRecordId: account, password };
             })
@@ -35,6 +53,7 @@ export class MacKeychainSecrets implements SecretsStorage {
 
     async addCredentials(filepath: string, password: string): Promise<void> {
         const account: string = JSON.stringify({
+            v: 1,
             filepath,
         });
         await keytar.setPassword(SERVICE_NAME, account, password);
