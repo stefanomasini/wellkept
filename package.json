@@ -73,7 +73,7 @@
     "crypto-js": "^4.1.1",
     "keytar": "^7.9.0",
     "readline-sync": "^1.4.10",
-    "tmp": "^0.0.33"
+    "tmp": "^0.2.1"
   },
   "mocha": {
     "require": [
