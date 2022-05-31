@@ -17,12 +17,12 @@ async function editOnScreen(title: string, isValid: TextValidator, text: string)
     let captureKeys = true;
     let saveCallback: ((text: string) => void) | undefined = undefined;
 
-    const screenBuffer = new ScreenBuffer({
+    const screenBuffer: any = new ScreenBuffer({
         dst: terminal,
         height: terminal.height - 2,
         y: 2,
     });
-    const textBuffer = new TextBuffer({
+    const textBuffer: any = new TextBuffer({
         dst: screenBuffer,
     });
     textBuffer.setText('');
@@ -34,7 +34,7 @@ async function editOnScreen(title: string, isValid: TextValidator, text: string)
     terminal.fullscreen(true);
     textBuffer.moveTo(0, 0);
     screenBuffer.moveTo(0, 0);
-    terminal.grabInput();
+    terminal.grabInput({});
     drawStatusBar();
     drawTitleBar();
     textBuffer.moveTo(0, 0);
