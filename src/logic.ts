@@ -1,4 +1,4 @@
-import { Encryption, FileSystem, Secret, SecretsStorage, TextEditor, UserError, UserInput } from './types';
+import { Encryption, EnvchainStorage, FileSystem, SecretsStorage, TextEditor, UserError, UserInput } from './types';
 import { Domain, DomainsBundle, DomainSecret } from './model';
 
 type VaultErrorStatus = 'missing' | 'broken_key' | 'cannot_read' | 'cannot_decrypt' | 'cannot_parse';
@@ -16,7 +16,7 @@ type VaultInfo = {
 export class WellKeptSecrets {
     constructor(protected secretsStorage: SecretsStorage, protected fileSystem: FileSystem, protected encryption: Encryption) {}
 
-    public async getSecrets(domainName: string): Promise<Secret[]> {
+    public async getSecrets(domainName: string): Promise<DomainSecret[]> {
         const vaults = await this.listVaults();
         return await this.getSecretsInDomain(vaults, domainName);
     }
@@ -103,7 +103,13 @@ export class WellKeptSecrets {
 }
 
 export class WellKeptSecretsCli extends WellKeptSecrets {
-    constructor(secretsStorage: SecretsStorage, fileSystem: FileSystem, encryption: Encryption, private userInput: UserInput) {
+    constructor(
+        secretsStorage: SecretsStorage,
+        private envchainStorage: EnvchainStorage,
+        fileSystem: FileSystem,
+        encryption: Encryption,
+        private userInput: UserInput
+    ) {
         super(secretsStorage, fileSystem, encryption);
     }
 
@@ -137,7 +143,15 @@ export class WellKeptSecretsCli extends WellKeptSecrets {
             throw new UserError(`Cannot read vault: ${filepath}`); // Shouldn't end up here
         }
         const inputText = domainsBundle.toINIFormat();
-        const outputText = textEditor.editTextSync(inputText);
+        function isValid(text: string): null | string {
+            try {
+                DomainsBundle.parseINIFormat(DomainsBundle.preProcessINIFormatLines(text));
+                return null;
+            } catch (err) {
+                return (err as any).message;
+            }
+        }
+        const outputText = await textEditor.editText(inputText, filepath, isValid);
         if (outputText === inputText) {
             return false;
         }
@@ -170,8 +184,16 @@ export class WellKeptSecretsCli extends WellKeptSecrets {
         if (domains.length > 1) {
             throw new UserError(`More than one domain with name ${domainName} found`); // Shouldn't end up here
         }
+        function isValid(text: string): null | string {
+            try {
+                Domain.parseINIFormat(DomainsBundle.preProcessINIFormatLines(text));
+                return null;
+            } catch (err) {
+                return (err as any).message;
+            }
+        }
         const inputText = domains[0].toINIFormat();
-        const outputText = textEditor.editTextSync(inputText);
+        const outputText = await textEditor.editText(inputText, filepath, isValid);
         if (outputText === inputText) {
             return { changed: false };
         }
@@ -199,6 +221,10 @@ export class WellKeptSecretsCli extends WellKeptSecrets {
     }
 
     async createVault(filepath: string): Promise<void> {
+        await this._createVault(filepath, new DomainsBundle([]));
+    }
+
+    private async _createVault(filepath: string, domainsBundle: DomainsBundle): Promise<void> {
         const vaults = (await this.listVaults()).filter(({ vaultFilepath }) => vaultFilepath === filepath);
         if (vaults.length > 0) {
             throw new UserError(`Vault with path ${filepath} already registered`);
@@ -207,9 +233,23 @@ export class WellKeptSecretsCli extends WellKeptSecrets {
             throw new UserError(`File ${filepath} already exists`);
         }
         const password = this.userInput.chooseNewPassword();
-        const encryptedContent = this.encryption.encrypt(new DomainsBundle([]).toJson(), password);
+        const encryptedContent = this.encryption.encrypt(domainsBundle.toJson(), password);
         await this.fileSystem.writeVaultFile(filepath, encryptedContent);
         await this.secretsStorage.addCredentials(filepath, password);
+    }
+
+    async importFromEnvchain(filepath: string, namespaces: string[]): Promise<void> {
+        const domains = await Promise.all(
+            namespaces.map(async (namespace) => {
+                return new Domain(
+                    namespace,
+                    (await this.envchainStorage.listEnvchainSecretsForNamespace(namespace)).map(
+                        ({ key, value }) => new DomainSecret(key, value)
+                    )
+                );
+            })
+        );
+        await this._createVault(filepath, new DomainsBundle(domains));
     }
 
     async getVaultsAndStats(): Promise<VaultStats[]> {

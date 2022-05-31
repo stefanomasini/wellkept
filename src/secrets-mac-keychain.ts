@@ -1,9 +1,19 @@
 import keytar from 'keytar';
-import { CredentialsInfo, SecretsStorage } from './types';
+import { CredentialsInfo, EnvchainStorage, SecretsStorage } from './types';
 
 const SERVICE_NAME = 'wellkept-secrets';
 
-export class MacKeychainSecrets implements SecretsStorage {
+export class MacKeychainSecrets implements SecretsStorage, EnvchainStorage {
+    async listEnvchainSecretsForNamespace(namespace: string): Promise<{ key: string; value: string }[]> {
+        return await Promise.all(
+            (
+                await keytar.findCredentials(`envchain-${namespace}`)
+            ).map(async ({ account, password }) => {
+                return { key: account, value: password };
+            })
+        );
+    }
+
     async listCredentials(): Promise<CredentialsInfo[]> {
         const results: CredentialsInfo[] = await Promise.all(
             (

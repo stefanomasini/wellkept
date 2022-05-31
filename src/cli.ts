@@ -23,7 +23,14 @@ const actionWrapper =
     };
 
 export async function main() {
-    const api = new WellKeptSecretsCli(new MacKeychainSecrets(), new RealFileSystem(), new CryptoEncryption(), new TerminalUserInput());
+    const macKeychainSecrets = new MacKeychainSecrets();
+    const api = new WellKeptSecretsCli(
+        macKeychainSecrets,
+        macKeychainSecrets,
+        new RealFileSystem(),
+        new CryptoEncryption(),
+        new TerminalUserInput()
+    );
     const textEditor = new UnixEditorInput();
 
     program
@@ -105,7 +112,7 @@ export async function main() {
                     const secrets = await api.getSecrets(domainName);
                     if (secrets.length > 0) {
                         for (const secret of secrets) {
-                            console.log(secret.name);
+                            console.log(secret.toINIFormat());
                         }
                     } else {
                         console.log('No secrets');
@@ -131,6 +138,16 @@ export async function main() {
                         }
                     }
                 }
+            })
+        );
+
+    program
+        .command('import-envchain <path> [namespaces...]')
+        .description('Create new vault by importing namespaces from envchain')
+        .action(
+            actionWrapper(async (path: string, envchain: string[]) => {
+                await api.importFromEnvchain(path, envchain);
+                console.log(chalk.green('Vault created'));
             })
         );
 

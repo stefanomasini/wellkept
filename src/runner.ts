@@ -1,7 +1,7 @@
 import child_process from 'child_process';
-import { Secret } from './types';
+import { DomainSecret } from './model';
 
-export function runChildProgramSync(command: string, args: string[], secrets: Secret[]): void {
+export function runChildProgramSync(command: string, args: string[], secrets: DomainSecret[]): void {
     const env = { ...process.env };
     for (const secret of secrets) {
         env[secret.name] = secret.value;

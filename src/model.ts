@@ -1,4 +1,4 @@
-import { Secret, UserError } from './types';
+import { UserError } from './types';
 
 function assertUniqueNameAndSortInPlace<T extends { name: string }>(elements: T[]): void {
     const names: Set<string> = new Set();
@@ -129,7 +129,7 @@ export class Domain {
     }
 }
 
-export class DomainSecret implements Secret {
+export class DomainSecret {
     constructor(public name: string, public value: string) {}
 
     static parseJson(data: any): DomainSecret {

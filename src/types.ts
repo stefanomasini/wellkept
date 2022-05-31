@@ -16,13 +16,14 @@ export interface SecretsStorage {
     addCredentials(filepath: string, password: string): Promise<void>;
 }
 
-export interface TextEditor {
-    editTextSync(input: string): string;
+export interface EnvchainStorage {
+    listEnvchainSecretsForNamespace(namespace: string): Promise<{ key: string; value: string }[]>;
 }
 
-export interface Secret {
-    name: string;
-    value: string;
+export type TextValidator = (text: string) => null | string;
+
+export interface TextEditor {
+    editText(input: string, vaultFilepath: string, isValid: TextValidator): Promise<string>;
 }
 
 export interface UserInput {
