@@ -1,12 +1,12 @@
 {
   "all": true,
-  "branches": 5,
+  "branches": 3,
   "extension": [
     ".js",
     ".ts",
     ".tsx"
   ],
-  "functions": 20,
+  "functions": 10,
   "include": [
     "dist/**/*.js",
     "src/**/*.ts"
