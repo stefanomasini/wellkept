@@ -1,9 +1,22 @@
 {
   "name": "wellkept",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "",
   "keywords": [
-    "secret", "secrets", "environment", "env", ".env", "dotenv", "variables", "config", "settings", "secret manager", "secrets manager", "credential", "credentials", "configuration"
+    "secret",
+    "secrets",
+    "environment",
+    "env",
+    ".env",
+    "dotenv",
+    "variables",
+    "config",
+    "settings",
+    "secret manager",
+    "secrets manager",
+    "credential",
+    "credentials",
+    "configuration"
   ],
   "author": {
     "name": "Stefano Masini",
