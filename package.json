@@ -3,7 +3,7 @@
   "version": "1.2.0",
   "description": "",
   "keywords": [
-    "typescript"
+    "secret", "secrets", "environment", "env", ".env", "dotenv", "variables", "config", "settings", "secret manager", "secrets manager", "credential", "credentials", "configuration"
   ],
   "author": {
     "name": "Stefano Masini",
