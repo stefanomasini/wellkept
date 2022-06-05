@@ -96,6 +96,14 @@ to the specified domain will be presented to be edited. The other secrets in the
 
     ➜ wellkept edit project1
 
+## Using secrets
+
+### run
+You can run any program through `wellkept` and all secrets contained in the specified domain will be passed to the program
+in the form of environment variables.
+
+    ➜ wellkept run project1 <program> ...arguments
+
 ## Migrating from envchain
 If you are using `envchain` and want to migrate secrets to `wellkept`, you can easily do so by simply listing the envchain
 namespaces and `wellkept` will create a new file-vault with the exported secrets, divided in domains matching the original
@@ -126,5 +134,12 @@ When it comes to secrets, I hold on to these strong tenets:
 There are many other tools out there that solve the basic need n.1, but many fail number 2 and number 3. Envchain was the only
 one I liked so far, but because of the shortcomings above – and because it's fun – I'm rolling my own.
 
+## Author
+
+Stefano Masini <[stefano@stefanomasini.com](mailto:stefano@stefanomasini.com)>
+
+## License
+
+MIT License
 
 [//]: # (Started off using [this template]&#40;https://github.com/chriswells0/node-typescript-template&#41;.)
