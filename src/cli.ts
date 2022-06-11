@@ -27,6 +27,22 @@ export async function main() {
     const api = new WellKeptSecretsCli(macKeychainSecrets, new RealFileSystem(), new CryptoEncryption(), new TerminalUserInput());
     const textEditor = new UnixEditorInput();
 
+    if (process.argv.length >= 2 && process.argv[1].endsWith('/envchain')) {
+        program
+            .enablePositionalOptions(true)
+            .argument('domain')
+            .argument('command')
+            .argument('[args...]')
+            .passThroughOptions(true)
+            .action(
+                actionWrapper(async (domainName, command, args) => {
+                    const secrets = await api.getSecrets(domainName);
+                    runChildProgramSync(command, args, secrets);
+                })
+            );
+        program.parse();
+        return;
+    }
     program
         .enablePositionalOptions(true)
         .command('run <domain> <command> [args...]')

@@ -120,6 +120,10 @@ a password to encrypt it.
     Repeat password: *****
     Vault created
 
+Furthermore, if you create a symlink to `wellkept` called `envchain` and call the program through that symlink, the program
+will behave as if you have issued the `wellkept run` command, with all following options on the command line. Hence behaving
+exactly like envchain when running programs.
+
 ## Motivation
 
 For a long time I've used [envchain](https://github.com/sorah/envchain), but secrets are stored in the system's keychain only,
