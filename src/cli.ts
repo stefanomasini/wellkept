@@ -24,13 +24,7 @@ const actionWrapper =
 
 export async function main() {
     const macKeychainSecrets = new MacKeychainSecrets();
-    const api = new WellKeptSecretsCli(
-        macKeychainSecrets,
-        macKeychainSecrets,
-        new RealFileSystem(),
-        new CryptoEncryption(),
-        new TerminalUserInput()
-    );
+    const api = new WellKeptSecretsCli(macKeychainSecrets, new RealFileSystem(), new CryptoEncryption(), new TerminalUserInput());
     const textEditor = new UnixEditorInput();
 
     program
@@ -146,7 +140,7 @@ export async function main() {
         .description('Create new vault by importing namespaces from envchain')
         .action(
             actionWrapper(async (path: string, envchain: string[]) => {
-                await api.importFromEnvchain(path, envchain);
+                await api.importFromEnvchain(path, envchain, macKeychainSecrets);
                 console.log(chalk.green('Vault created'));
             })
         );

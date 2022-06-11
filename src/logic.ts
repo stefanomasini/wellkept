@@ -103,13 +103,7 @@ export class WellKeptSecrets {
 }
 
 export class WellKeptSecretsCli extends WellKeptSecrets {
-    constructor(
-        secretsStorage: SecretsStorage,
-        private envchainStorage: EnvchainStorage,
-        fileSystem: FileSystem,
-        encryption: Encryption,
-        private userInput: UserInput
-    ) {
+    constructor(secretsStorage: SecretsStorage, fileSystem: FileSystem, encryption: Encryption, private userInput: UserInput) {
         super(secretsStorage, fileSystem, encryption);
     }
 
@@ -238,14 +232,12 @@ export class WellKeptSecretsCli extends WellKeptSecrets {
         await this.secretsStorage.addCredentials(filepath, password);
     }
 
-    async importFromEnvchain(filepath: string, namespaces: string[]): Promise<void> {
+    async importFromEnvchain(filepath: string, namespaces: string[], envchainStorage: EnvchainStorage): Promise<void> {
         const domains = await Promise.all(
             namespaces.map(async (namespace) => {
                 return new Domain(
                     namespace,
-                    (await this.envchainStorage.listEnvchainSecretsForNamespace(namespace)).map(
-                        ({ key, value }) => new DomainSecret(key, value)
-                    )
+                    (await envchainStorage.listEnvchainSecretsForNamespace(namespace)).map(({ key, value }) => new DomainSecret(key, value))
                 );
             })
         );
