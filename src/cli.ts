@@ -28,7 +28,9 @@ export async function main() {
     const textEditor = new UnixEditorInput();
 
     program
+        .enablePositionalOptions(true)
         .command('run <domain> <command> [args...]')
+        .passThroughOptions(true)
         .description('Run command by passing environment variables taken from the given domain.')
         .action(
             actionWrapper(async (domainName, command, args) => {
