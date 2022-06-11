@@ -1,3 +1,18 @@
+# [1.3.0](https://github.com/stefanomasini/wellkept/compare/v1.2.2...v1.3.0) (2022-06-11)
+
+
+### Bug Fixes
+
+* enable passthrough options for "wellkept run" ([43501bd](https://github.com/stefanomasini/wellkept/commit/43501bd3059ceeece5a3f9df084776d665fd69f9))
+* removed fs/promises to support older versions of node ([6704fb5](https://github.com/stefanomasini/wellkept/commit/6704fb5451922cf086e98434a96dd0c44d543648))
+
+
+### Features
+
+* added support for symlink named "envchain" ([bc7d88a](https://github.com/stefanomasini/wellkept/commit/bc7d88aad3169cfcbec240031c67a62eaea598d2))
+
+
+
 ## [1.2.2](https://github.com/stefanomasini/wellkept/compare/v1.2.1...v1.2.2) (2022-06-05)
 
 
