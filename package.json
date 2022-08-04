@@ -87,7 +87,7 @@
     "crypto-js": "^4.1.1",
     "keytar": "^7.9.0",
     "readline-sync": "^1.4.10",
-    "terminal-kit": "^1.49.4"
+    "terminal-kit": "^2.5.1"
   },
   "mocha": {
     "require": [
